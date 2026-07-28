@@ -1,3 +1,5 @@
+New fix coming soon, was missing some anomalies.
+
 # HDT Anomaly Display (maintained fork)
 
 A Hearthstone Deck Tracker plugin that displays the current Battlegrounds anomaly on the overlay.
