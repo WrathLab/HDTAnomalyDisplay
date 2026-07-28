@@ -1,0 +1,22 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.cache
+
+# HDT references — never commit the host app or HearthDb
+lib/
+
+# Visual Studio / Rider
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
