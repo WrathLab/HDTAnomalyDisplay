@@ -1,16 +1,23 @@
-# HDT Anomaly Display — patched
+# HDT Anomaly Display (maintained fork)
 
 A Hearthstone Deck Tracker plugin that displays the current Battlegrounds anomaly on the overlay.
 
-**This is a fork of [Mouchoir/HDTAnomalyDisplay](https://github.com/Mouchoir/HDTAnomalyDisplay) with the v1.3.0 patch.** The original plugin has been broken on modern HDT since late 2023; this fork fixes it.
+> **Status: maintained fork.** The original upstream [Mouchoir/HDTAnomalyDisplay](https://github.com/Mouchoir/HDTAnomalyDisplay) is **archived** as of late 2025 (last push Nov 2023, no responses to issues). This fork is the active version. If you tried the original and it didn't show the anomaly, that's why - and this fork fixes it.
 
-## The bug
+## Quick install
 
-`AnomalyDisplay.AwaitGameEntity` waits up to 10 seconds for 2 hero entities with the `BACON_HERO_CAN_BE_DRAFTED` or `BACON_SKIN` tags. Those tags only appear during the **initial BG hero select** (one-time per BG run). On every normal match the loop times out, and the anomaly read that follows never runs.
+1. Grab the latest `HDTAnomalyDisplay.dll` from [Releases](../../releases) (or build it yourself, see below).
+2. Drop it into your HDT plugins folder: `%AppData%\HearthstoneDeckTracker\Plugins\`
+3. Restart HDT.
+4. Open the plugin's settings (Plugins menu, "HDT Anomaly Display") and click **Unlock Overlay** to drag the card where you want it, or **Reset Position** to put it at the default.
+
+## The bug (in v1.2.0 upstream)
+
+`AnomalyDisplay.AwaitGameEntity` waits up to 10 seconds for 2 hero entities with the `BACON_HERO_CAN_BE_DRAFTED` or `BACON_SKIN` tags. Those tags only appear during the **initial BG hero select** (one time per BG run). On every normal match the loop times out, and the anomaly read that follows never runs.
 
 The whole flow also has no try/catch, so a single null entity in the game state silently kills the plugin with no log to debug.
 
-## The fix
+## The fix (v1.3.0)
 
 - The wait now polls the game entity's anomaly DbfId directly with a 3-second cap, and exits early as soon as the value appears.
 - Every public entry point (`HandleGameStart`, `ClearCard`, `OnLoad`, `OnUnload`, settings menu handlers) is wrapped in try/catch.
@@ -46,18 +53,6 @@ dotnet build -c Release -p:Platform=x64
 
 Output: `bin\Release\HDTAnomalyDisplay.dll`
 
-## Install
-
-Copy `bin\Release\HDTAnomalyDisplay.dll` to your HDT plugins folder:
-
-```
-%AppData%\HearthstoneDeckTracker\Plugins\HDTAnomalyDisplay.dll
-```
-
-(typically `C:\Users\<you>\AppData\Roaming\HearthstoneDeckTracker\Plugins\`)
-
-Restart HDT. Open the plugin's settings menu, click **Unlock Overlay** to drag the anomaly card to your preferred position, **Reset Position** to put it back at the default (X=0, Y=630).
-
 ## What you should see in HDT's log
 
 On a successful run:
@@ -70,11 +65,15 @@ On a successful run:
 
 Common failure modes (logged as warnings, not crashes):
 
-- `HandleGameStart: not a Battlegrounds game` — you opened HDT while in main menu or constructed
-- `GameEntity still null after wait` — HDT didn't pick up the game state
-- `No anomaly DbfId found` — this BG match genuinely has no anomaly (most don't)
-- `HandleGameStart failed: <exception>` — something is wrong, the exception type and stack are logged
+- `HandleGameStart: not a Battlegrounds game` - you opened HDT while in main menu or constructed
+- `GameEntity still null after wait` - HDT didn't pick up the game state
+- `No anomaly DbfId found` - this BG match genuinely has no anomaly (most don't)
+- `HandleGameStart failed: <exception>` - something is wrong, the exception type and stack are logged
 
 ## Credits
 
-Original plugin by [@Mouchoir](https://github.com/Mouchoir) and [@Tignus](https://github.com/Tignus) — all credit to them for the design. v1.3.0 patch is a maintenance fix; no feature work.
+Original plugin by [@Mouchoir](https://github.com/Mouchoir) and [@Tignus](https://github.com/Tignus) - all credit to them for the design. v1.3.0 patch is a maintenance fix; no feature work.
+
+If Mouchoir ever un-archives the upstream and wants to pull this in, the diff is one self-contained commit against their tree. The PR body is in the conversation log; the maintainer-friendly summary is:
+
+> Fix the 10-second wait for hero entities (those tags only appear during initial BG hero select, not in normal matches). Add try/catch and structured logging around the public entry points. Switch to x64 to match modern HDT. No API surface changes; no behavior changes for users except the plugin now actually works.
